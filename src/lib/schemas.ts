@@ -49,6 +49,7 @@ export const PropertyDetailsSchema = z.object({
 }).optional();
 
 export const BiodataSchema = z.object({
+  template: z.enum(['template1', 'template2'], { required_error: 'Please select a template.' }),
   personalDetails: PersonalDetailsSchema,
   familyDetails: FamilyDetailsSchema,
   jobDetails: JobDetailsSchema,
@@ -62,6 +63,7 @@ export type JobDetails = z.infer<typeof JobDetailsSchema>;
 export type PropertyDetails = z.infer<typeof PropertyDetailsSchema>;
 
 export const defaultBiodata: Biodata = {
+  template: 'template1',
   personalDetails: {
     name: '',
     dob: new Date(new Date().setFullYear(new Date().getFullYear() - 18)), // Default to 18 years ago

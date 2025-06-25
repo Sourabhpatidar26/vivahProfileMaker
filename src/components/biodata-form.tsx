@@ -1,7 +1,6 @@
 'use client';
 
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { FormProvider } from 'react-hook-form';
 import { BiodataSchema, defaultBiodata, type Biodata } from '@/lib/schemas';
 import { useBiodataForm } from '@/hooks/use-biodata-form';
 import { Button } from '@/components/ui/button';
@@ -10,16 +9,20 @@ import { FamilyDetailsSection } from '@/components/sections/family-details-secti
 import { JobDetailsSection } from '@/components/sections/job-details-section';
 import { PropertyDetailsSection } from '@/components/sections/property-details-section';
 import { AIProfileAssistant } from '@/components/ai-profile-assistant';
-import { Loader2, RefreshCcw } from 'lucide-react';
+import { Loader2, RefreshCcw, Eye, BookImage } from 'lucide-react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
-export function BiodataForm() {
+interface BiodataFormProps {
+  onPreview: (data: Biodata) => void;
+}
+
+export function BiodataForm({ onPreview }: BiodataFormProps) {
   const form = useBiodataForm<Biodata>(BiodataSchema, defaultBiodata);
 
   const onSubmit = (data: Biodata) => {
-    // This function would typically handle final submission, e.g., to generate PDF/preview
-    // For now, data is auto-saved to localStorage.
-    console.log('Form submitted (preview/export):', data);
-    alert('Form data logged to console. Preview/Export not yet implemented.');
+    onPreview(data);
   };
 
   if (!form.isLoaded) {
@@ -38,6 +41,39 @@ export function BiodataForm() {
         <FamilyDetailsSection form={form} />
         <JobDetailsSection form={form} />
         <PropertyDetailsSection form={form} />
+        
+        <Card className="shadow-lg">
+          <CardHeader>
+             <div className="flex items-center gap-3">
+              <BookImage className="h-6 w-6 text-primary" />
+              <CardTitle className="font-headline text-2xl">Template Selection</CardTitle>
+            </div>
+             <CardDescription>Choose a visual style for your biodata.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="template"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select Template</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a template" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="template1">Modern & Clean</SelectItem>
+                      <SelectItem value="template2">Classic & Elegant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
 
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8">
           <AIProfileAssistant getFormData={form.getValues} />
@@ -46,7 +82,8 @@ export function BiodataForm() {
               <RefreshCcw className="h-4 w-4" /> Reset Form
             </Button>
             <Button type="submit" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-              Preview & Export (WIP)
+              <Eye className="mr-2 h-4 w-4" />
+              Generate Preview
             </Button>
           </div>
         </div>
