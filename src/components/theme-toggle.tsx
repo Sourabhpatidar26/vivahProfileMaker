@@ -5,40 +5,55 @@ import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ThemeToggle() {
-  const [theme, setThemeState] = React.useState<'theme-light' | 'dark' | 'system'>('system');
+  const [resolvedTheme, setResolvedTheme] = React.useState<'theme-light' | 'dark'>('theme-light');
+  const [theme, setThemeState] = React.useState<'theme-light' | 'dark' | 'system'>('system'); // Keep user's preference
 
   React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setThemeState(isDarkMode ? 'dark' : 'theme-light');
+    // This effect runs only on the client
+    const initialTheme = localStorage.getItem('theme') || 'system';
+    setThemeState(initialTheme as 'theme-light' | 'dark' | 'system');
+
+    const applyTheme = (currentTheme: 'theme-light' | 'dark' | 'system') => {
+      const isDark = currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
+      setResolvedTheme(isDark ? 'dark' : 'theme-light');
+    };
+
+    applyTheme(initialTheme as 'theme-light' | 'dark' | 'system');
   }, []);
 
-  React.useEffect(() => {
-    const isDark =
-      theme === 'dark' ||
-      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
+  React.useEffect(() => { 
+  // Determine current effective theme for icon display
+  // const currentEffectiveTheme = React.useMemo(() => {
+  //   if (theme === 'system') {
+  //     return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'theme-light';
+  //   }
+  //   return theme;
+  // }, [theme]);
+
+
+    if (typeof window !== 'undefined') {
+      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
+      setResolvedTheme(isDark ? 'dark' : 'theme-light');
+      localStorage.setItem('theme', theme);
+    }
   }, [theme]);
 
   const toggleTheme = () => {
-    setThemeState(prevTheme => (prevTheme === 'dark' ? 'theme-light' : 'dark'));
+    setThemeState(prevTheme => {
+      const nextTheme = prevTheme === 'dark' ? 'theme-light' : 'dark';
+      return nextTheme;
+    });
   };
-  
-  // Determine current effective theme for icon display
-  const currentEffectiveTheme = React.useMemo(() => {
-    if (theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'theme-light';
-    }
-    return theme;
-  }, [theme]);
-
 
   return (
     <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-      {currentEffectiveTheme === 'dark' ? (
+      {resolvedTheme === 'dark' ? (
         <Sun className="h-5 w-5" />
       ) : (
         <Moon className="h-5 w-5" />
-      )}
+      )} {/* Use resolvedTheme for icon display */}
     </Button>
   );
 }
